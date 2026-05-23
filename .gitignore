@@ -1,0 +1,32 @@
+# ==========================================
+# STM32CubeIDE Build & Local Config files
+# ==========================================
+/STM32_Project/Debug/
+/STM32_Project/Release/
+/STM32_Project/.settings/
+/STM32_Project/*.launch
+/STM32_Project/.cproject.xml
+/STM32_Project/.project.xml
+
+# ==========================================
+# PyCharm & Python Runtime files
+# ==========================================
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# ==========================================
+# K210 runtime cache
+# ==========================================
+/K210_Project/data.txt
+
+# ==========================================
+# System files
+# ==========================================
+Thumbs.db
+Desktop.ini
+.DS_Store
