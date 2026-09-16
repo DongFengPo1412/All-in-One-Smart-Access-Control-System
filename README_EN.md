@@ -12,6 +12,7 @@
 [![Vision Model](https://img.shields.io/badge/Vision%20Model-Tiny--YOLOv2%20KPU%20%2B%20196D%20Embedding-success?style=for-the-badge&logo=opencv)](https://github.com/)
 [![Biometrics](https://img.shields.io/badge/Biometrics-AS608%20500DPI%20Minutiae%20Pattern-blueviolet?style=for-the-badge)](https://github.com/)
 [![RFID](https://img.shields.io/badge/RFID-MFRC522%2013.56MHz%20ISO14443A-informational?style=for-the-badge)](https://github.com/)
+[![Bilibili: Live Demo](https://img.shields.io/badge/Bilibili-Live%20Demo-fb7299?style=for-the-badge&logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV1qi3UzGEwH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -62,6 +63,10 @@ This project served as the comprehensive capstone hardware project for *Microcom
 ## 2. Physical Hardware Demonstration & Verification
 
 Below are authentic frames captured directly from the 4K test bench demonstration video (`三合一门禁实验演示.mp4`) and corresponding system architectural schematics.
+
+* The complete 4K 60fps live end-to-end hardware demonstration video is available on Bilibili:  
+  👉 **[Watch Live Demo on Bilibili: Heterogeneous Dual-Core Edge-AI Multi-Modal Smart Access Control System](https://www.bilibili.com/video/BV1qi3UzGEwH)**  
+  *(Demonstrating MFRC522 RFID card swiping, AS608 500DPI optical fingerprint matching, K210 on-device AI face verification, and SG90 servo door-lock control)*
 
 ### 2.1 Live Physical Test Bench Multimodal Demonstration
 

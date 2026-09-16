@@ -12,6 +12,7 @@
 [![Vision Model](https://img.shields.io/badge/Vision%20Model-Tiny--YOLOv2%20KPU%20%2B%20196D%20Embedding-success?style=for-the-badge&logo=opencv)](https://github.com/)
 [![Biometrics](https://img.shields.io/badge/Biometrics-AS608%20500DPI%20Minutiae%20Pattern-blueviolet?style=for-the-badge)](https://github.com/)
 [![RFID](https://img.shields.io/badge/RFID-MFRC522%2013.56MHz%20ISO14443A-informational?style=for-the-badge)](https://github.com/)
+[![Bilibili: Live Demo](https://img.shields.io/badge/Bilibili-Live%20Demo-fb7299?style=for-the-badge&logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV1qi3UzGEwH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -62,6 +63,10 @@
 ## 2. 硬件实机演示与全链路验证
 
 以下展示从 4K 实机演示视频（`三合一门禁实验演示.mp4`）中截取的真实动态开锁过程，以及系统的底层拓扑与电气物理布局。
+
+* 完整 4K 60fps 实机全流程动态演示视频已发布在 Bilibili：  
+  👉 **[点击观看实机演示视频：基于异构双核边缘计算的三合一多模态智慧门禁系统实测](https://www.bilibili.com/video/BV1qi3UzGEwH)**  
+  *(完整展示 MFRC522 RFID 刷卡、AS608 500DPI 光学指纹匹配、K210 端侧 AI 人脸检测比对及 SG90 舵机模拟锁体开锁与防拆报警全流程)*
 
 ### 2.1 实物台架多模态开锁动态测试
 

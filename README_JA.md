@@ -12,6 +12,7 @@
 [![Vision Model](https://img.shields.io/badge/Vision%20Model-Tiny--YOLOv2%20KPU%20%2B%20196D%20Embedding-success?style=for-the-badge&logo=opencv)](https://github.com/)
 [![Biometrics](https://img.shields.io/badge/Biometrics-AS608%20500DPI%20Minutiae%20Pattern-blueviolet?style=for-the-badge)](https://github.com/)
 [![RFID](https://img.shields.io/badge/RFID-MFRC522%2013.56MHz%20ISO14443A-informational?style=for-the-badge)](https://github.com/)
+[![Bilibili: Live Demo](https://img.shields.io/badge/Bilibili-Live%20Demo-fb7299?style=for-the-badge&logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV1qi3UzGEwH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -62,6 +63,10 @@
 ## 2. 実機デモと全流路ハードウェア検証
 
 以下は、4K 実機デモ動画（`三合一门禁实验演示.mp4`）から直接抽出した開錠シーンおよびシステムの電気的トポロジーです。
+
+* 完全な 4K 60fps 実機動作デモ動画は Bilibili にて公開されています：  
+  👉 **[Bilibili で実機デモ動画を視聴する：異種デュアルコア・エッジAIスマート入退室管理システム実機稼働検証](https://www.bilibili.com/video/BV1qi3UzGEwH)**  
+  *(MFRC522 RFID カード認証、AS608 500DPI 光学指紋照合、K210 エッジ AI 顔認識、SG90 サーボによる開錠・ブザー警報全プロセスを収録)*
 
 ### 2.1 実機ベンチによるマルチモーダル開錠テスト
 
