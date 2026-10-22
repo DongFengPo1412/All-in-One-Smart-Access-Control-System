@@ -30,6 +30,7 @@
 
 /* FLASH起始地址 */
 #define STM32_FLASH_SIZE        0x10000         /* STM32 FLASH 总大小 */
+#define RFID_FLASH_BASE 0x08009000U
 #define STM32_FLASH_BASE        0x08000000      /* STM32 FLASH 起始地址 */
 
  /* STM32F103 扇区大小 */
@@ -54,7 +55,7 @@ static uint8_t stmflash_write_halfword(uint32_t faddr, uint16_t data);  /* FLASH
 /* 接口函数(外部可调用) */
 uint16_t stmflash_read_halfword(uint32_t faddr);                        /* FLASH读半字 */
 void stmflash_read(uint32_t raddr, uint16_t *pbuf, uint16_t length);    /* 从指定地址开始读出指定长度的数据 */
-void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length);   /* 在FLASH 指定位置, 写入指定长度的数据(自动擦除) */
+HAL_StatusTypeDef stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length);   /* 在FLASH 指定位置, 写入指定长度的数据(自动擦除) */
 
 /* 测试函数 */
 void test_write(uint32_t waddr, uint16_t wdata);

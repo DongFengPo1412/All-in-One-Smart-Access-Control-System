@@ -209,11 +209,12 @@ void SysTick_Handler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  uint32_t isrflags = READ_REG(huart1.Instance->SR);
+  uint32_t idle = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE) &&
+                  __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_IDLE);
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
 
-  if ((isrflags & UART_IT_IDLE) != RESET) // 判断是否为IDLE中断
+  if (idle != RESET) // 判断是否为IDLE中断
   {
     UsartReceive_IDLE(&huart1); // 调用IDLE中断处理函数
   }

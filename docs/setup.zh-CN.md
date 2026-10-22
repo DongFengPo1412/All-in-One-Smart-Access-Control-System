@@ -8,7 +8,7 @@
 
 | 部件 | 源码配置 |
 | :--- | :--- |
-| 主控 | STM32F103C8T6；HSE×9，预期72 MHz；链接64 KiB Flash/20 KiB RAM。 |
+| 主控 | STM32F103C8T6；HSE×9，预期72 MHz；物理64 KiB Flash，链接程序区36 KiB，RAM20 KiB。 |
 | AS608 | USART1：PA9 TX、PA10 RX，57600 8N1。 |
 | K210 | K210 UART1 IO9 TX／IO10 RX；接STM32 USART2 PA3 RX／PA2 TX，115200 8N1。 |
 | 调试 | USART3 PB10 TX／PB11 RX，115200；printf经此口。 |
@@ -68,7 +68,7 @@ STM32需STM32CubeIDE、ARM工具链、调试器；K210需匹配旧MaixPy KPU接�
 
 | 问题 | 排查 |
 | :--- | :--- |
-| 停在loading | AS608供电、USART1、握手、IDLE与RX_len；启动没有总超时。 |
+| 停在loading | 检查AS608供电、USART1和握手；最多5次后降级，缺席时指纹菜单显示离线。 |
 | K210启动失败 | 模型机器码、Maix版本、SD路径、data.txt、摄像头/LCD。 |
 | 人脸已显示成功却未动作 | ASCII1、115200、交叉TX/RX、face_flag、主机所处阻塞页面。 |
 | 登记内容断电丢失／异常 | 三种存储位置不同；Flash map边界、SD写入、模块命令返回。 |

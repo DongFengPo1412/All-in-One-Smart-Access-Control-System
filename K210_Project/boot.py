@@ -99,6 +99,7 @@ def save_feature(feat):
 
 #清除人脸
 def save_clear():
+    global record_ftr, record_ftrs
     record_ftr = []
     record_ftrs = []
     with open("/sd/data.txt","w") as f:
@@ -109,7 +110,7 @@ def save_clear():
 with open('/sd/data.txt','rb') as f:
     s = f.readlines()
 
-    for line in s:
+    for line in s[:len(names)]:
             #print(ubinascii.a2b_base64(line))
         record_ftrs.append(bytearray(ubinascii.a2b_base64(line)))
 # check = 0
@@ -187,6 +188,9 @@ while(1): # 主循环
                 a = img.draw_string(i.x(),i.y(), ("X :%2.1f" % (max_score)), color=(255,0,0),scale=2) #显示未知 与 分数
             if key_pressed == 1:
                 key_pressed = 0
+                if len(record_ftrs) >= len(names):
+                    print("Enrollment full: 10 named slots")
+                    break
                 record_ftr = feature
                 record_ftrs.append(record_ftr)  #将特征点添加到比较数组中
                 save_feature(record_ftr)        #存到SD卡

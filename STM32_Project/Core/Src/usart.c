@@ -22,6 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #include <stdio.h>
+#include <string.h>
 
 #if (__ARMCC_VERSION >= 6010050)           /* ??AC6???? */
 __asm(".global __use_no_semihosting\n\t"); /* ?????????? */
@@ -66,7 +67,7 @@ int fgetc(FILE *f)
 /* USER CODE END 0 */
 void UsartReceive_IDLE(UART_HandleTypeDef *huart); // 空闲中断回调函数
 
-extern uint8_t face_flag; // 人脸识别标志位
+extern volatile uint8_t face_flag; // 人脸识别标志位
 
 // 接受缓冲区
 uint8_t g_usart_rx2_buf[USART_REC_LEN];
@@ -79,8 +80,9 @@ uint8_t g_usart_rx2_buf[USART_REC_LEN];
 uint16_t g_usart_rx_sta = 0;
 uint8_t g_rx2_buffer[RXBUFFERSIZE_UART2]; /* HAL库使用的串口接收缓冲 */
 
+static uint8_t rx_work[RXBUFFERSIZE_UART1];
 uint8_t aRxBuffer[RXBUFFERSIZE_UART1]; // 接收缓冲
-uint8_t RX_len;                        // 接收字节计数
+volatile uint16_t RX_len;                        // 接收字节计数
 
 // 定义三个串口句柄
 UART_HandleTypeDef huart1;
@@ -103,7 +105,7 @@ void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UART_Receive_IT(&huart1, (uint8_t *)aRxBuffer, RXBUFFERSIZE_UART1) != HAL_OK) // 接收中断打开,空闲中断打开
+  if (HAL_UART_Receive_IT(&huart1, (uint8_t *)rx_work, RXBUFFERSIZE_UART1) != HAL_OK) // 接收中断打开,空闲中断打开
   {
     Error_Handler();
   }
@@ -194,6 +196,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
     /* USART1 interrupt Init */
     HAL_NVIC_SetPriority(USART1_IRQn, 3, 3);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
+  __HAL_UART_ENABLE_IT(uartHandle, UART_IT_IDLE);
     /* USER CODE BEGIN USART1_MspInit 1 */
 
     /* USER CODE END USART1_MspInit 1 */
@@ -326,11 +329,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if (huart->Instance == USART1)
   {
+    UsartReceive_IDLE(huart);
   }
   else if (huart->Instance == USART2)
   {
     //多了以下代码就不会出现中断一次卡死的问题，
-    HAL_UART_Transmit(&huart2, (uint8_t *)"OK", 2, 0xffff);
+    static uint8_t ack[] = "OK";
+    HAL_UART_Transmit_IT(&huart2, ack, 2);
     //  清楚接收中断标志位
     __HAL_UART_CLEAR_IDLEFLAG(&huart2);
     // 打印接收到的数据是否为'1'，若是则解锁成功
@@ -339,8 +344,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       face_flag = 1;
       // HAL_UART_Transmit(&huart2, (uint8_t *)"unlock success!\r\n", 17, 0xffff);
     }
-    while (HAL_UART_Receive_IT(&huart2, (uint8_t *)g_rx2_buffer, RXBUFFERSIZE_UART2) == HAL_OK) // 重新打开中断
-      ;
+    HAL_UART_Receive_IT(&huart2, g_rx2_buffer, RXBUFFERSIZE_UART2);
     __HAL_UART_CLEAR_IDLEFLAG(&huart2);
   }
 }
@@ -349,10 +353,13 @@ void UsartReceive_IDLE(UART_HandleTypeDef *huart) // 空闲中断回调函数
 {
   __HAL_UART_CLEAR_IDLEFLAG(&huart1); // 清除中断
 
-  RX_len = RXBUFFERSIZE_UART1 - huart1.RxXferCount; // 计算接收数据长度
-  HAL_UART_AbortReceive_IT(huart);                  // 终止接收
-
-  HAL_UART_Receive_IT(&huart1, (uint8_t *)aRxBuffer, RXBUFFERSIZE_UART1); // 接收完数据后再次打开中断接收函数
+  uint16_t count = RXBUFFERSIZE_UART1 - huart1.RxXferCount;
+  HAL_UART_AbortReceive(huart);
+  if (RX_len == 0 && count > 0) {
+    memcpy(aRxBuffer, rx_work, count);
+    RX_len = count; /* publish only after the snapshot is complete */
+  }
+  HAL_UART_Receive_IT(huart, rx_work, RXBUFFERSIZE_UART1);
 }
 /* USER CODE END 1 */
 

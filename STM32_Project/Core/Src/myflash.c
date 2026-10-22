@@ -49,14 +49,15 @@ void stmflash_read(uint32_t raddr, uint16_t *pbuf, uint16_t length)
  * @param       length  : 要写入的 半字(16位)数
  * @retval      无
  */
-void stmflash_write_nocheck(uint32_t waddr, uint16_t *pbuf, uint16_t length)
+static HAL_StatusTypeDef stmflash_write_nocheck(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 {
     uint16_t i;
     for (i = 0; i < length; i++)
     {
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, waddr, pbuf[i]);
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, waddr, pbuf[i]) != HAL_OK) return HAL_ERROR;
         waddr += 2; /* 指向下一个半字 */
     }
+    return HAL_OK;
 }
 
 /**
@@ -71,7 +72,7 @@ void stmflash_write_nocheck(uint32_t waddr, uint16_t *pbuf, uint16_t length)
  * @retval      无
  */
 uint16_t g_flashbuf[STM32_SECTOR_SIZE / 2]; /* 最多是2K字节 */
-void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
+HAL_StatusTypeDef stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 {
     uint32_t secpos;    /* 扇区地址 */
     uint16_t secoff;    /* 扇区内偏移地址(16位字计算) */
@@ -81,12 +82,11 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
     FLASH_EraseInitTypeDef flash_eraseop;
     uint32_t erase_addr; /* 擦除错误，这个值为发生错误的扇区地址 */
 
-    if (waddr < STM32_FLASH_BASE || (waddr >= (STM32_FLASH_BASE + 1024 * STM32_FLASH_SIZE)))
-    {
-        return; /* 非法地址 */
-    }
-
-    HAL_FLASH_Unlock(); /* FLASH解锁 */
+    if (!pbuf || !length || (waddr & 1U) || waddr < RFID_FLASH_BASE ||
+        waddr >= RFID_FLASH_BASE + STM32_SECTOR_SIZE ||
+        (uint32_t)length * 2U > RFID_FLASH_BASE + STM32_SECTOR_SIZE - waddr)
+        return HAL_ERROR;
+    if (HAL_FLASH_Unlock() != HAL_OK) return HAL_ERROR;
 
     offaddr = waddr - STM32_FLASH_BASE;         /* 实际偏移地址. */
     secpos = offaddr / STM32_SECTOR_SIZE;       /* 扇区地址  0~255 for STM32F103ZET6 */
@@ -113,17 +113,17 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
             flash_eraseop.Banks = FLASH_BANK_1;
             flash_eraseop.NbPages = 1;
             flash_eraseop.PageAddress = secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE; /* 要擦除的扇区 */
-            HAL_FLASHEx_Erase(&flash_eraseop, &erase_addr);
+            if (HAL_FLASHEx_Erase(&flash_eraseop, &erase_addr) != HAL_OK) goto failed;
 
             for (i = 0; i < secremain; i++) /* 复制 */
             {
                 g_flashbuf[i + secoff] = pbuf[i];
             }
-            stmflash_write_nocheck(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf, STM32_SECTOR_SIZE / 2); /* 写入整个扇区 */
+            if (stmflash_write_nocheck(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf, STM32_SECTOR_SIZE / 2) != HAL_OK) goto failed; /* 写入整个扇区 */
         }
         else
         {
-            stmflash_write_nocheck(waddr, pbuf, secremain); /* 写已经擦除了的,直接写入扇区剩余区间. */
+            if (stmflash_write_nocheck(waddr, pbuf, secremain) != HAL_OK) goto failed; /* 写已经擦除了的,直接写入扇区剩余区间. */
         }
         if (length == secremain)
         {
@@ -147,7 +147,10 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
         }
     }
 
-    HAL_FLASH_Lock(); /* 上锁 */
+    return HAL_FLASH_Lock();
+failed:
+    HAL_FLASH_Lock();
+    return HAL_ERROR;
 }
 
 /******************************************************************************************/

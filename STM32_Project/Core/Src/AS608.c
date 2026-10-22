@@ -1,4 +1,5 @@
 #include <string.h>
+#include "as608_packet.h"
 #include "main.h"
 #include "AS608.h"
 #include "usart.h"
@@ -50,33 +51,25 @@ static void SendCheck(uint16_t check)
 // 判断中断接收的数组有没有应答包
 // waittime为等待中断接收数据的时间（单位1ms）
 // 返回值：数据包首地址
-extern uint8_t RX_len; // 接收字节计数
-static uint8_t *JudgeStr(uint16_t waittime)
+extern volatile uint16_t RX_len;
+static uint8_t *JudgeStr(uint16_t waittime, uint16_t minimum_payload)
 {
-	char *data;
-	uint8_t str[8];
-	str[0] = 0xef;
-	str[1] = 0x01;
-	str[2] = AS608Addr >> 24;
-	str[3] = AS608Addr >> 16;
-	str[4] = AS608Addr >> 8;
-	str[5] = AS608Addr;
-	str[6] = 0x07;
-	str[7] = '\0';
-
-	while (--waittime)
-	{
-		HAL_Delay(1);
-		if (RX_len) // 接收到一次数据
-		{
-			RX_len = 0;
-			data = strstr((const char *)&aRxBuffer, (const char *)str);
-			if (data)
-				return (uint8_t *)data;
-		}
-	}
-	return 0;
+    static uint8_t packet[RXBUFFERSIZE_UART1];
+    while (waittime--) {
+        HAL_Delay(1);
+        uint32_t mask = __get_PRIMASK();
+        __disable_irq();
+        uint16_t count = RX_len;
+        if (count > sizeof(packet)) count = sizeof(packet);
+        if (count) memcpy(packet, aRxBuffer, count);
+        RX_len = 0;
+        if (!mask) __enable_irq();
+        uint8_t *p = as608_find_ack(packet, count, AS608Addr, minimum_payload);
+        if (p) return p;
+    }
+    return 0;
 }
+
 // 录入图像 GZ_GetImage
 // 功能:探测手指，探测到后录入指纹图像存于ImageBuffer。
 // 模块返回确认字
@@ -92,7 +85,7 @@ uint8_t GZ_GetImage(void)
 	Sendcmd(0x01);
 	temp = 0x01 + 0x03 + 0x01;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -116,7 +109,7 @@ uint8_t GZ_GenChar(uint8_t BufferID)
 	Com_SendData(BufferID);
 	temp = 0x01 + 0x04 + 0x02 + BufferID;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -138,7 +131,7 @@ uint8_t GZ_Match(void)
 	Sendcmd(0x03);
 	temp = 0x01 + 0x03 + 0x03;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -166,7 +159,7 @@ uint8_t GZ_Search(uint8_t BufferID, uint16_t StartPage, uint16_t PageNum, Search
 	Com_SendData(PageNum);
 	temp = 0x01 + 0x08 + 0x04 + BufferID + (StartPage >> 8) + (uint8_t)StartPage + (PageNum >> 8) + (uint8_t)PageNum;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 5);
 	if (data)
 	{
 		ensure = data[9];
@@ -192,7 +185,7 @@ uint8_t GZ_RegModel(void)
 	Sendcmd(0x05);
 	temp = 0x01 + 0x03 + 0x05;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -219,7 +212,7 @@ uint8_t GZ_StoreChar(uint8_t BufferID, uint16_t PageID)
 	Com_SendData(PageID);
 	temp = 0x01 + 0x06 + 0x06 + BufferID + (PageID >> 8) + (uint8_t)PageID;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -246,7 +239,7 @@ uint8_t GZ_DeletChar(uint16_t PageID, uint16_t N)
 	Com_SendData(N);
 	temp = 0x01 + 0x07 + 0x0C + (PageID >> 8) + (uint8_t)PageID + (N >> 8) + (uint8_t)N;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -269,7 +262,7 @@ uint8_t GZ_Empty(void)
 	Sendcmd(0x0D);
 	temp = 0x01 + 0x03 + 0x0D;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -294,7 +287,7 @@ uint8_t GZ_WriteReg(uint8_t RegNum, uint8_t DATA)
 	Com_SendData(DATA);
 	temp = RegNum + DATA + 0x01 + 0x05 + 0x0E;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -317,13 +310,13 @@ uint8_t GZ_ReadSysPara(SysPara *p)
 	Sendcmd(0x0F);
 	temp = 0x01 + 0x03 + 0x0F;
 	SendCheck(temp);
-	data = JudgeStr(1000);
+	data = JudgeStr(1000, 17);
 	if (data)
 	{
 		ensure = data[9];
 		p->GZ_max = (data[14] << 8) + data[15];
 		p->GZ_level = data[17];
-		p->GZ_addr = (data[18] << 24) + (data[19] << 16) + (data[20] << 8) + data[21];
+		p->GZ_addr = ((uint32_t)data[18] << 24) + ((uint32_t)data[19] << 16) + ((uint32_t)data[20] << 8) + data[21];
 		p->GZ_size = data[23];
 		p->GZ_N = data[25];
 	}
@@ -352,7 +345,7 @@ uint8_t GZ_SetAddr(uint32_t GZ_addr)
 	temp = 0x01 + 0x07 + 0x15 + (uint8_t)(GZ_addr >> 24) + (uint8_t)(GZ_addr >> 16) + (uint8_t)(GZ_addr >> 8) + (uint8_t)GZ_addr;
 	SendCheck(temp);
 	AS608Addr = GZ_addr; // 发送完指令，更换地址
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -385,7 +378,7 @@ uint8_t GZ_WriteNotepad(uint8_t NotePageNum, uint8_t *Byte32)
 	}
 	temp = 0x01 + 36 + 0x18 + NotePageNum + temp;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 1);
 	if (data)
 		ensure = data[9];
 	else
@@ -409,7 +402,7 @@ uint8_t GZ_ReadNotepad(uint8_t NotePageNum, uint8_t *Byte32)
 	Com_SendData(NotePageNum);
 	temp = 0x01 + 0x04 + 0x19 + NotePageNum;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 33);
 	if (data)
 	{
 		ensure = data[9];
@@ -445,7 +438,7 @@ uint8_t GZ_HighSpeedSearch(uint8_t BufferID, uint16_t StartPage, uint16_t PageNu
 	Com_SendData(PageNum);
 	temp = 0x01 + 0x08 + 0x1b + BufferID + (StartPage >> 8) + (uint8_t)StartPage + (PageNum >> 8) + (uint8_t)PageNum;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 5);
 	if (data)
 	{
 		ensure = data[9];
@@ -474,7 +467,7 @@ uint8_t GZ_ValidTempleteNum(uint16_t *ValidN)
 	Sendcmd(0x1d);
 	temp = 0x01 + 0x03 + 0x1d;
 	SendCheck(temp);
-	data = JudgeStr(2000);
+	data = JudgeStr(2000, 3);
 	if (data)
 	{
 		ensure = data[9];
@@ -496,17 +489,19 @@ uint8_t GZ_HandShake(uint32_t *GZ_Addr)
 	Com_SendData(0X00);
 	Com_SendData(0X00);
 	HAL_Delay(200);
-	if (RX_len)
-	{
-		RX_len = 0;
-		if ( // 判断是不是模块返回的应答包
-			aRxBuffer[0] == 0XEF && aRxBuffer[1] == 0X01 && aRxBuffer[6] == 0X07)
-		{
-			*GZ_Addr = (aRxBuffer[2] << 24) + (aRxBuffer[3] << 16) + (aRxBuffer[4] << 8) + (aRxBuffer[5]);
-			return 0;
-		}
-	}
-	return 1;
+    uint8_t head[7];
+    uint32_t mask = __get_PRIMASK();
+    __disable_irq();
+    uint16_t count = RX_len;
+    if (count >= sizeof(head)) memcpy(head, aRxBuffer, sizeof(head));
+    RX_len = 0;
+    if (!mask) __enable_irq();
+    if (count >= sizeof(head) && head[0] == 0xef && head[1] == 0x01 && head[6] == 0x07) {
+        *GZ_Addr = ((uint32_t)head[2] << 24) | ((uint32_t)head[3] << 16) |
+                   ((uint32_t)head[4] << 8) | head[5];
+        return 0;
+    }
+    return 1;
 }
 // 模块应答包确认码信息解析
 // 功能：解析确认码错误信息返回信息

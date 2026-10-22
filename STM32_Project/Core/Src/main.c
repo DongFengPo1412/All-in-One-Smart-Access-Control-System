@@ -51,7 +51,9 @@ extern uint8_t UI1[4]; // 卡片1ID数组
 extern uint8_t UI2[4]; // 卡片2ID数组
 extern uint8_t UI3[4]; // 卡片3ID数组
 
-uint8_t face_flag = 0; // 人脸识别标志位
+static uint8_t fingerprint_ready = 0;
+static HAL_StatusTypeDef card_store_status = HAL_ERROR;
+volatile uint8_t face_flag = 0; // 人脸识别标志位
 
 static uint8_t menu_page = 0;	// 页面选择
 static uint8_t keynum = 0;		// 按键值
@@ -90,15 +92,15 @@ int main(void)
 	RFID_Init();					 // RFID初始化
 	Key_Init();						 // 按键初始化
 	Servo_Init();					 // 舵机初始化
-	while (GZ_HandShake(&AS608Addr)) // 初始化指纹模块
-	{
-		HAL_Delay(100); // 等待1秒
-		printf("finger init again\r\n");
-	}
+    for (unsigned attempt = 0; attempt < 5; ++attempt) {
+        if (GZ_HandShake(&AS608Addr) == 0) { fingerprint_ready = 1; break; }
+        HAL_Delay(100);
+    }
+    if (!fingerprint_ready) printf("Fingerprint unavailable; card/face remain enabled\r\n");
 	Read_Card_Flash(); // 读取flash中的卡片ID
 	HAL_Delay(1000);
 	printf("所有模块已初始化成功\r\n");
-	OLED_ShowString(2, 1, "  INIT SUCCESS! ");
+	OLED_ShowString(2, 1, fingerprint_ready ? "  INIT SUCCESS! " : "AS608 OFFLINE");
 	HAL_Delay(1000);
 
 	while (1)
@@ -348,9 +350,10 @@ int main(void)
 							UI3[3] = UID[3];
 						}
 						Add_Card_Flash();
+                        Read_Card_Flash();
 						OLED_Clear();
 						OLED_ShowString(2, 1, "   Add card");
-						OLED_ShowString(3, 1, "   success");
+						OLED_ShowString(3, 1, card_store_status == HAL_OK ? "   success" : "FLASH ERROR");
 						HAL_Delay(3000);
 						menu_page = 1;
 						ID_select = 0;
@@ -361,6 +364,10 @@ int main(void)
 
 			break;
 		case 3:
+            if (!fingerprint_ready) {
+                OLED_Clear(); OLED_ShowString(2, 1, "AS608 OFFLINE");
+                HAL_Delay(1000); menu_page = 1; break;
+            }
 			OLED_Clear();
 			OLED_ShowString(2, 1, "  please finger1");
 			while (1)
@@ -492,10 +499,11 @@ int main(void)
 						UI3[3] = UID[3];
 					}
 					Add_Card_Flash();
+                        Read_Card_Flash();
 					printf("删除卡片成功\r\n");
 					OLED_Clear();
 					OLED_ShowString(2, 1, "  Delete card");
-					OLED_ShowString(3, 1, "   success");
+					OLED_ShowString(3, 1, card_store_status == HAL_OK ? "   success" : "FLASH ERROR");
 					HAL_Delay(3000);
 					menu_page = 1;
 					ID_select = 0;
@@ -530,6 +538,10 @@ int main(void)
 			}
 			break;
 		case 5:
+            if (!fingerprint_ready) {
+                OLED_Clear(); OLED_ShowString(2, 1, "AS608 OFFLINE");
+                HAL_Delay(1000); menu_page = 1; break;
+            }
 			OLED_Clear();
 			OLED_ShowString(2, 1, "  Delete finger1");
 			while (1)
@@ -689,6 +701,7 @@ void Read_Card_Flash()
 // 刷指纹
 int press_FR(void)
 {
+    if (!fingerprint_ready) return -1;
 	SearchResult seach;
 	uint8_t ensure;
 	char *str;
@@ -740,6 +753,7 @@ int press_FR(void)
 // 删除指纹
 void Del_FR(void)
 {
+    if (!fingerprint_ready) return;
 	// GZ_Empty();//清空指纹库
 	GZ_DeletChar(ID_select, 1); // 删除单个指纹
 }
@@ -747,24 +761,25 @@ void Del_FR(void)
 // 将cardID 4字节 存入flash,判断ID 0-3
 void Add_Card_Flash()
 {
+    card_store_status = HAL_ERROR;
 	uint16_t cardID[2];
 	cardID[0] = UID[0] << 8 | UID[1];
 	cardID[1] = UID[2] << 8 | UID[3];
 	if (ID_select == 0)
 	{
-		stmflash_write(0X08009000, cardID, 2);
+		card_store_status = stmflash_write(0X08009000, cardID, 2);
 	}
 	else if (ID_select == 1)
 	{
-		stmflash_write(0X08009004, cardID, 2);
+		card_store_status = stmflash_write(0X08009004, cardID, 2);
 	}
 	else if (ID_select == 2)
 	{
-		stmflash_write(0X08009008, cardID, 2);
+		card_store_status = stmflash_write(0X08009008, cardID, 2);
 	}
 	else if (ID_select == 3)
 	{
-		stmflash_write(0X0800900C, cardID, 2);
+		card_store_status = stmflash_write(0X0800900C, cardID, 2);
 	}
 }
 

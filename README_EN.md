@@ -65,3 +65,9 @@ The Flash region lacks linker reservation, transactions, and wear leveling. K210
 Historical documentation lists **Chaoran Liu, Shanlin Yuan, and Gaofeng Chen**. This describes the team system; exact personal ownership requires member records. Module-internal fingerprint algorithms, pretrained models, and inherited drivers are not individual original implementations.
 
 Application license: [MIT](LICENSE). ST HAL/CMSIS, attributed peripheral/Flash code, Maix/KPU, and encrypted models retain their source terms. [Technical notes](docs/technical-notes.en.md) · [Setup](docs/setup.en.md)
+
+## Maintenance revision (2026-10)
+
+Fingerprint ACKs now have bounded length, address and additive-checksum validation. Receive length is 16-bit; the ISR publishes a separate snapshot and IDLE is enabled explicitly. USART2 uses nonblocking best-effort acknowledgement and a single receive rearm. Startup attempts AS608 at most five times; absence disables fingerprint operations while preserving card/face paths.
+
+ARM GCC 13.3 compilation and linking pass: text 19,952 B, data 128 B, bss 4,760 B. Eight independent ACK parser cases compiled with Clang to WebAssembly pass in Node. K210 receives syntax checking only. No flashing, peripheral tests or new recognition/performance results.

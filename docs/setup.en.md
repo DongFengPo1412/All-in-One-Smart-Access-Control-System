@@ -8,7 +8,7 @@
 
 | Device | Source configuration |
 | :--- | :--- |
-| MCU | STM32F103C8T6, HSE×9/expected 72 MHz; linker 64 KiB Flash/20 KiB RAM. |
+| MCU | STM32F103C8T6, HSE×9/expected 72 MHz; physical Flash 64 KiB, linked program region 36 KiB, RAM 20 KiB. |
 | AS608 | USART1 PA9 TX/PA10 RX,57600 8N1. |
 | K210 | UART1 IO9 TX/IO10 RX to STM32 USART2 PA3 RX/PA2 TX,115200 8N1. |
 | Debug | USART3 PB10 TX/PB11 RX,115200; printf uses this port. |
@@ -68,7 +68,7 @@ Only parsing/ARM syntax checks ran, without serial access or servo motion.
 
 | Problem | Inspect |
 | :--- | :--- |
-| Stuck loading | AS608 power, USART1, handshake, IDLE/RX_len; no overall startup timeout. |
+| Stuck loading | Check AS608 power, USART1 and handshake; after at most five attempts, fingerprint menus report offline while card/face remain available. |
 | K210 boot failure | Machine code/models, Maix version, SD/data.txt, camera/LCD. |
 | Face accepted but no motion | ASCII 1,115200,crossed TX/RX,face_flag,blocking host page. |
 | Lost/invalid enrollment | Three storage locations; Flash map, SD write, module response. |

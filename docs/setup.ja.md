@@ -8,7 +8,7 @@
 
 | 部品 | ソース設定 |
 | :--- | :--- |
-| MCU | STM32F103C8T6、HSE×9／想定72 MHz、Flash64 KiB／RAM20 KiB。 |
+| MCU | STM32F103C8T6、HSE×9／想定72 MHz。物理Flash64 KiB、リンクするコード36 KiB、RAM20 KiB。 |
 | AS608 | USART1 PA9 TX／PA10 RX、57600 8N1。 |
 | K210 | UART1 IO9 TX／IO10 RX→STM32 USART2 PA3 RX／PA2 TX、115200 8N1。 |
 | デバッグ | USART3 PB10 TX／PB11 RX、115200、printf出力。 |
@@ -64,11 +64,11 @@ STM32はCubeIDE・ARMツール・書込み機器、K210は旧MaixPy KPU API互�
 
 ## 検査と切り分け
 
-静的解析とARM構文のみで、UARTやサーボは操作していません。
+ARM GCC 13.3でコンパイルとリンクに成功しました。text 19,952 B、data 128 B、bss 4,760 Bです。ClangでWebAssemblyにした独立ACK解析テスト8件がNodeで通過しました。K210は構文検査のみです。書込・周辺実測・新たな認識性能評価は行っていません。
 
 | 現象 | 確認 |
 | :--- | :--- |
-| loadingから進まない | AS608、USART1、握手、IDLEとRX_len。全体起動期限なし。 |
+| loadingから進まない | AS608電源、USART1、握手を確認。最大5回後に指紋をオフラインとし、カード・顔を維持します。 |
 | K210起動失敗 | 機器コード・モデル、Maix、SD/data.txt、カメラ/LCD。 |
 | 顔成功でも不動 | ASCII1、115200、TX/RX交差、face_flag、主機のブロック状態。 |
 | 登録消失・異常 | 別々の保存先、Flash map、SD書込、モジュール応答。 |
