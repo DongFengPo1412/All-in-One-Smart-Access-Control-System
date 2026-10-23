@@ -40,7 +40,7 @@ STM32需STM32CubeIDE、ARM工具链、调试器；K210需匹配旧MaixPy KPU接�
 ## 分设备部署
 
 1. 导入`STM32_Project/.project`所对应工程，保留现有手写文件，不直接用ioc覆盖生成。
-2. 核对main中HSE及外设、工具链printf重定向、USART1接收和0x08009000存储页。查看map后再决定是否适合烧录；本轮未证明完整链接成功。
+2. 核对 HSE、外设、printf、USART1 和 UID 页，并查看 map。ARM GCC 完整链接已验证；这不保证 CubeIDE 重新生成工程或实板烧录正确。
 3. 用实际调试器构建／下载STM32。没有提供可保证成功的跨环境一键命令。
 4. K210取得与机器码对应的模型，按代码放到SD根目录：`FaceDetection.smodel`、`FaceLandmarkDetection.smodel`、`FeatureExtraction.smodel`。
 5. 准备`/sd/data.txt`，初次可为空；源码直接以读模式打开，不自动容错创建。放置`boot.py`并核对LCD／摄像头与IO9/10/16。

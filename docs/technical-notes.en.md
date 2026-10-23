@@ -62,6 +62,6 @@ OLED bit-bangs PB6/7, sends write address 0x78, and ignores ACK; this is not con
 
 ARM GCC 13.3 compilation and linking pass: text 19,952 B, data 128 B, bss 4,760 B. Eight independent ACK parser cases compiled with Clang to WebAssembly pass in Node. K210 receives syntax checking only. No flashing, peripheral tests or new recognition/performance results.
 
-The `.ioc` contains basic RCC/NVIC only, zero peripherals, and 8 MHz clocks, unlike handwritten 72 MHz/peripheral source. Regeneration is not a verified recovery method. Legacy toolchain I/O code is present; full linking still needs validation.
+The `.ioc` contains basic RCC/NVIC only, zero peripherals, and 8 MHz clocks, unlike handwritten 72 MHz/peripheral source. Regeneration is not a verified recovery method. The ARM GCC link is verified; CubeIDE regeneration and physical UART timing are not.
 
 This maintenance revision fixes the course `7Project` baseline and is no longer byte-identical to the archive. Photos/models are preserved and features from different historical variants are not combined.

@@ -40,7 +40,7 @@ STM32はCubeIDE・ARMツール・書込み機器、K210は旧MaixPy KPU API互�
 ## 別々の導入
 
 1. `STM32_Project/.project`の工程を取り込み、手書きファイルを保ち、iocから上書き生成しません。
-2. HSE・周辺、printf、USART1受信、0x08009000を確認し、mapを見て書込み可否を判断します。今回は完全リンク成功を保証しません。
+2. HSE・周辺・printf・USART1・UIDページとmapを確認します。ARM GCC全体リンクは検証済みですが、CubeIDE再生成や実機書込みの成功を保証しません。
 3. 実際の書込み機器でSTM32をビルド・導入します。環境を問わない成功保証付き1コマンドはありません。
 4. K210機器コード対応モデルをSDルートの`FaceDetection.smodel`、`FaceLandmarkDetection.smodel`、`FeatureExtraction.smodel`へ置きます。
 5. `/sd/data.txt`を用意します。初回は空でもよいですが、コードは読込で開き自動作成しません。`boot.py`とLCD・カメラ・IO9/10/16を確認します。

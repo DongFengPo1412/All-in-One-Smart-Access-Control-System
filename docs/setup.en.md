@@ -40,7 +40,7 @@ STM32 needs CubeIDE/ARM tools and a programmer; K210 needs firmware compatible w
 ## Deploy separately
 
 1. Import the project identified by `STM32_Project/.project`; preserve handwritten files rather than regenerating from ioc.
-2. Inspect main's HSE/peripherals, toolchain printf redirection, USART1 reception, and 0x08009000 page. Check the map before programming; this audit does not prove a successful full link.
+2. Inspect HSE, peripherals, printf, USART1 and the UID page, then review the map. The ARM GCC full link is verified; CubeIDE regeneration and programming on the actual board remain unverified.
 3. Build/program STM32 with the actual programmer. No guaranteed cross-machine one-command build is supplied.
 4. Obtain K210 machine-matched models at the SD root:`FaceDetection.smodel`,`FaceLandmarkDetection.smodel`,`FeatureExtraction.smodel`.
 5. Prepare `/sd/data.txt`, initially empty if needed. Source opens it for reading without tolerant creation. Place `boot.py` and verify LCD/camera/IO9/10/16.

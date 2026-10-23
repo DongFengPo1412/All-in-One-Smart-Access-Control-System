@@ -43,7 +43,7 @@ Branches are polled rather than all authentication running concurrently. Any acc
 
 [Historical demonstration](https://www.bilibili.com/video/BV1qi3UzGEwH) and photos show the prototype, not measured sub-100 ms latency, FAR/FRR, or long-term reliability.
 
-ARM GCC syntax checks passed for all Core C files; the K210 script parses statically. Linking, flashing, Maix model loading, and physical tests were not rerun. Main STM32 files match the local `7Project` copy; differing `6SmartGate` functionality was not merged into this system.
+ARM GCC 13.3 compilation and linking passed: text 19,952 B, data 128 B, bss 4,760 B; eight binary-response parser cases passed, while K210 received syntax checks only. No flashing, Maix model loading or fresh hardware test occurred. Maintenance builds on course `7Project` and is no longer byte-identical; differing `6SmartGate` features were not merged.
 
 ## Quick start
 
@@ -56,9 +56,9 @@ The `.ioc` does not describe the current peripherals/72 MHz setup; regenerating 
 
 ## Limits and next steps
 
-Fingerprint responses, key release, and servo holding introduce blocking waits. Hard-real-time behavior and prompt face-event handling in every page are unverified. AS608 response parsing uses string search; reception/length handling needs hardware review.
+Fingerprint responses, key release and servo holding still include blocking waits; hard-real-time behavior or prompt face events in every page is unverified. AS608 now validates binary-frame bounds, address, length and additive checksum; UART interrupts and peripheral timing still need hardware checks.
 
-The Flash region lacks linker reservation, transactions, and wear leveling. K210 remote enrollment/clearing is disconnected. Priorities are framed UART/timeouts, storage bounds, administrator authorization, and model reproduction before quantitative recognition/security evaluation. [Detailed limits](docs/technical-notes.en.md#implementation-status)
+The linker now limits program Flash to 36 KiB to preserve the existing RFID UID page. Atomic updates, power-loss recovery and wear leveling remain absent. K210 remote enrollment/clearing is still disconnected. Next verify UART timing, power-loss behavior, administrator authorization and model setup before quantitative recognition/security tests. [Detailed limits](docs/technical-notes.en.md#implementation-status)
 
 ## Team and license
 
